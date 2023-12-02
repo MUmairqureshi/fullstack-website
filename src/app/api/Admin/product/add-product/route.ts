@@ -1,60 +1,86 @@
-// import connectDB from "@/DB/connectDB";
-// import AuthCheck from "@/middleware/AuthCheck";
-import { NextResponse } from "next/server";
-// import Product from "@/model/Product";
+
+import { UsersTable , NewUser} from "@/components/schema";
 import Joi from "joi";
 import { db } from '@vercel/postgres';
+import { pgTable, serial, text, timestamp, varchar, boolean} from 'drizzle-orm/pg-core';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { InferModel, eq } from 'drizzle-orm';
+import { NextRequest, NextResponse } from 'next/server';
+import { sql } from '@vercel/postgres'
 
 
-const AddProductSchema  = Joi.object({
-  productName  : Joi.string().required(),
-  productDescription  : Joi.string().required(),
-  productImage  : Joi.string().required(),
-  productQuantity  : Joi.number().required(),
-  productSlug  : Joi.string().required(),
-  productPrice  : Joi.number().required(),
-  // productFeatured  : Joi.boolean().required(),
-  //   Joi.required()
-})
-
+export interface  NewUsers  {
+  productDescription: string 
+  productImage :  Array<File>, 
+  productName : string ,
+  productPrice : Number ,
+  productQuantity : Number , 
+  productSlug : string, 
+}
 
 
 
 export const dynamic  = 'force-dynamic'
 
-export async function POST(req: Request) {
-  const client = await db.connect();  
-  try {
+export async function POST(request: NextRequest) {
+  const db = drizzle(sql)
+
+  
 
     // const isAuthenticated = await AuthCheck(req);
 
     // if (isAuthenticated === 'admin') {
       
-      const data = await req.json();
+      const data = await request.json();
+console.log(data)
+      const {  productDescription  , productImage ,productName  , productPrice , productQuantity , productSlug  } = data;
 
-      const {  productDescription , productFeatured , productImage ,productName  , productPrice , productQuantity , productSlug  } = data;
-      await client.sql`INSERT INTO dommz_entities (Name, Owner) VALUES (${productDescription[0]}, ${names[1]});`;
-      const { error } = AddProductSchema.validate( {  productDescription , productFeatured , productImage ,productName  , productPrice , productQuantity , productSlug  });
 
-      if (error) return NextResponse.json({ success: false, message: error.details[0].message.replace(/['"]+/g, '') });
-
-      // const saveData = await Product.create(data);
-
-      // if (saveData) {
-      //   return NextResponse.json({ success: true, message: "Product added successfully!" });
-      // } else {
-      //   return NextResponse.json({ success: false, message: "Failed to add the Product. Please try again!" });
-      // }
-    // } else {
-    //   return NextResponse.json({ success: false, message: "You are not authorized." });
-    // }
-  } catch (error) {
-    console.log('Error in adding a new Product:', error);
-    return NextResponse.json({ success: false, message: 'Something went wrong. Please try again!' });
+      if (
+        !productDescription ||
+        !productImage ||
+        !productName ||
+        !productPrice ||
+        !productQuantity||
+        !productSlug
+      ) {
+        return NextResponse.json(
+          { message: "Fields are empty!" },
+          {
+            status: 404,
+          }
+        );
+      }
+      const appliedUser    = {
+        productDescription ,
+        productImage ,
+        productName ,
+        productPrice ,
+        productQuantity , 
+        productSlug, 
+    
+      };
+    
+      try {
+        const users = await db.insert(UsersTable).values(appliedUser).returning();
+        return NextResponse.json({
+          message: "Applied Successfirsty",
+          users,
+        })
+  
+  }  catch (error : any) {
+    console.log("error" , error)
+    return NextResponse.json(
+      {
+        message: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
   }
+  
 
 
   
-  const dommz = await client.sql`SELECT * FROM dommz_entities;`;
-  return NextResponse.json({ dommz: dommz.rows });
 }

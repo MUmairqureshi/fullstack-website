@@ -130,16 +130,16 @@ export default function AddProduct() {
         const finalData = { productName: data.name, productDescription: data.description, productImage: uploadImageToFirebase , productSlug: data.slug , productFeatured  : data.feature , productPrice : data.price , productQuantity : data.quantity }
         console.log(finalData)
         const res = await add_new_product(finalData)
-        if (res.success) {
-            // toast.success(res?.message);
-            // setTimeout(() => {
-            //     Router.push('/Dashboard')
-            // }, 2000);
-            // setLoader(false)
-            return "succecc"
-        } else {
-            return "error"
-        }
+        // if (res.success) {
+        //     toast.success(res?.message);
+        //     setTimeout(() => {
+        //         Router.push('/Dashboard')
+        //     }, 2000);
+        //     setLoader(false)
+        //     // return "succecc"
+        // } else {
+        //     return "error"
+        // }
     }
 
 
